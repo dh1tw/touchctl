@@ -30,6 +30,7 @@ install:
 build_script:
   - go get ./...
   - go get github.com/gobuffalo/packr/v2/packr2
+  - set PATH=%PATH%;C:\gopath\bin
   - cd C:\gopath\src\github.com\dh1tw\streamdeck
   - packr2
   - cd C:\gopath\src\github.com\dh1tw\touchctl
