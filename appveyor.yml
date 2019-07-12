@@ -39,4 +39,4 @@ build_script:
 
   artifacts:
   - path: *.exe
-  - name: touchctl
+    name: touchctl
