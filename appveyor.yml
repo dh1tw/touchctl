@@ -38,6 +38,6 @@ build_script:
   - dir
   - rename touchctl.exe touchctl-%APPVEYOR_REPO_COMMIT%-%GOOS%-%GOARCH%.exe
 
-  artifacts:
+artifacts:
   - path: touchctl-%APPVEYOR_REPO_COMMIT%-%GOOS%-%GOARCH%.exe
     name: touchctl
