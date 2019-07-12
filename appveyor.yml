@@ -35,6 +35,7 @@ build_script:
   - set PATH=%PATH%;C:\gopath\bin
   - cd C:\gopath\src\github.com\dh1tw\streamdeck
   - packr2
+  - dir
   - cd C:\gopath\src\github.com\dh1tw\touchctl
   - go build
   - dir
