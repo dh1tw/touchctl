@@ -36,8 +36,8 @@ build_script:
   - cd C:\gopath\src\github.com\dh1tw\touchctl
   - go build
   - dir
-  - rename touchctl.exe touchctl-%APPVEYOR_REPO_COMMIT%-%MSYS2_BITS.%exe
+  - rename touchctl.exe touchctl-%APPVEYOR_REPO_COMMIT%-%GOOS%-%GOARCH%.exe
 
   artifacts:
-  - path: *.exe
+  - path: touchctl-%APPVEYOR_REPO_COMMIT%-%GOOS%-%GOARCH%.exe
     name: touchctl
