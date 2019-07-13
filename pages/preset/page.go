@@ -2,6 +2,7 @@ package presetpage
 
 import (
 	"log"
+	"sync"
 
 	"github.com/dh1tw/remoteRotator/rotator"
 	esd "github.com/dh1tw/streamdeck"
@@ -9,8 +10,9 @@ import (
 )
 
 type presetPage struct {
+	sync.Mutex
 	sd         *esd.StreamDeck
-	parent     esd.Page
+	ownParent  esd.Page
 	btns       map[int]*label.Label
 	btnMapping map[int]presetValue
 	back       *label.Label
@@ -26,10 +28,10 @@ type presetValue struct {
 func NewPresetPage(sd *esd.StreamDeck, parent esd.Page, r rotator.Rotator) esd.Page {
 
 	pp := &presetPage{
-		sd:      sd,
-		parent:  parent,
-		rotator: r,
-		btns:    make(map[int]*label.Label),
+		sd:        sd,
+		ownParent: parent,
+		rotator:   r,
+		btns:      make(map[int]*label.Label),
 		btnMapping: map[int]presetValue{
 			3:  presetValue{"NW", 315},
 			2:  presetValue{"N", 0},
@@ -63,13 +65,16 @@ func NewPresetPage(sd *esd.StreamDeck, parent esd.Page, r rotator.Rotator) esd.P
 }
 
 func (pp *presetPage) Set(btnIndex int, state esd.BtnState) esd.Page {
+	pp.Lock()
+	defer pp.Unlock()
+
 	if state == esd.BtnReleased {
 		return nil
 	}
 
 	switch btnIndex {
 	case 4:
-		return pp.parent
+		return pp.parent()
 	}
 
 	v, ok := pp.btnMapping[btnIndex]
@@ -82,23 +87,39 @@ func (pp *presetPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 		log.Println(err)
 	}
 
-	pp.parent.Parent().SetActive(true)
-	return pp.parent.Parent()
+	pp.parent().Parent().SetActive(true)
+	return pp.parent().Parent()
 }
 
-func (pp *presetPage) Draw() {
+func (pp *presetPage) draw() {
 	for _, btn := range pp.btns {
 		btn.Draw()
 	}
 	pp.back.Draw()
 }
 
+func (pp *presetPage) Draw() {
+	pp.Lock()
+	defer pp.Unlock()
+	pp.draw()
+}
+
+func (pp *presetPage) parent() esd.Page {
+	return pp.ownParent
+}
+
 func (pp *presetPage) Parent() esd.Page {
-	return pp.parent
+	pp.Lock()
+	defer pp.Unlock()
+	return pp.parent()
+}
+
+func (pp *presetPage) setActive(active bool) {
+	pp.active = active
 }
 
 func (pp *presetPage) SetActive(active bool) {
-	pp.sd.ClearAllBtns()
-	pp.Draw()
-	pp.active = active
+	pp.Lock()
+	defer pp.Unlock()
+	pp.setActive(active)
 }

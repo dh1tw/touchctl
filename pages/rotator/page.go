@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"log"
 	"strconv"
+	"sync"
 
 	"github.com/dh1tw/remoteRotator/rotator"
 	esd "github.com/dh1tw/streamdeck"
@@ -12,8 +13,9 @@ import (
 )
 
 type rotatorPage struct {
+	sync.Mutex
 	sd            *esd.StreamDeck
-	parent        esd.Page
+	ownParent     esd.Page
 	numPad        map[int]*label.Label
 	newPos        *label.Label
 	back          *label.Label
@@ -28,9 +30,9 @@ type rotatorPage struct {
 func NewRotatorPage(sd *esd.StreamDeck, parent esd.Page, r rotator.Rotator) esd.Page {
 
 	sp := &rotatorPage{
-		sd:     sd,
-		parent: parent,
-		numPad: make(map[int]*label.Label),
+		sd:        sd,
+		ownParent: parent,
+		numPad:    make(map[int]*label.Label),
 		keyPadMapping: map[int]int{
 			10: 0,
 			3:  1,
@@ -88,14 +90,17 @@ func NewRotatorPage(sd *esd.StreamDeck, parent esd.Page, r rotator.Rotator) esd.
 }
 
 func (sp *rotatorPage) Set(btnIndex int, state esd.BtnState) esd.Page {
+	sp.Lock()
+	defer sp.Unlock()
+
 	if state == esd.BtnReleased {
 		return nil
 	}
 
 	switch btnIndex {
 	case 4:
-		sp.parent.SetActive(true)
-		return sp.parent
+		sp.ownParent.SetActive(true)
+		return sp.parent()
 	case 5:
 		dir, err := strconv.Atoi(sp.newPosText)
 		if err != nil {
@@ -103,8 +108,8 @@ func (sp *rotatorPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 			break
 		}
 		sp.rotator.SetAzimuth(dir)
-		sp.parent.SetActive(true)
-		return sp.parent
+		sp.ownParent.SetActive(true)
+		return sp.parent()
 	case 9:
 		return presetpage.NewPresetPage(sp.sd, sp, sp.rotator)
 	}
@@ -117,13 +122,13 @@ func (sp *rotatorPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 		num := sp.keyPadMapping[btnIndex]
 		sp.newPosText = sp.newPosText + strconv.Itoa(num)
 		sp.newPos.SetText(sp.newPosText)
-		sp.Draw()
+		sp.draw()
 	}
 
 	return nil
 }
 
-func (sp *rotatorPage) Draw() {
+func (sp *rotatorPage) draw() {
 	for _, btn := range sp.numPad {
 		btn.Draw()
 	}
@@ -133,12 +138,28 @@ func (sp *rotatorPage) Draw() {
 	sp.set.Draw()
 }
 
+func (sp *rotatorPage) Draw() {
+	sp.Lock()
+	defer sp.Unlock()
+	sp.draw()
+}
+
+func (sp *rotatorPage) parent() esd.Page {
+	return sp.ownParent
+}
+
 func (sp *rotatorPage) Parent() esd.Page {
-	return sp.parent
+	sp.Lock()
+	defer sp.Unlock()
+	return sp.parent()
+}
+
+func (sp *rotatorPage) setActive(active bool) {
+	sp.active = active
 }
 
 func (sp *rotatorPage) SetActive(active bool) {
-	sp.sd.ClearAllBtns()
-	sp.Draw()
-	sp.active = active
+	sp.Lock()
+	defer sp.Unlock()
+	sp.setActive(active)
 }

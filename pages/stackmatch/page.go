@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"log"
 	"sort"
+	"sync"
 	"time"
 
 	Switch "github.com/dh1tw/remoteSwitch/switch"
@@ -18,13 +19,14 @@ import (
 )
 
 type stackPage struct {
-	sd       *esd.StreamDeck
-	parent   esd.Page
-	stack    stackmatch
-	rotators map[int]*rot
-	labels   map[int]*label.Label
-	hub      *hub.Hub
-	active   bool
+	sd *esd.StreamDeck
+	sync.Mutex
+	ownParent esd.Page
+	stack     *stackmatch
+	rotators  map[int]*rot
+	labels    map[int]*label.Label
+	hub       *hub.Hub
+	active    bool
 }
 
 type rot struct {
@@ -33,6 +35,7 @@ type rot struct {
 }
 
 type stackmatch struct {
+	sync.Mutex
 	sm   Switch.Switcher
 	btns map[string]*ledBtn.LedButton
 }
@@ -42,6 +45,8 @@ func (sm *stackmatch) update() error {
 	if err != nil {
 		return err
 	}
+	sm.Lock()
+	defer sm.Unlock()
 	for _, t := range p.Terminals {
 		btn, ok := sm.btns[t.Name]
 		if !ok {
@@ -53,6 +58,8 @@ func (sm *stackmatch) update() error {
 }
 
 func (sm *stackmatch) set(terminalName string) error {
+	sm.Lock()
+	defer sm.Unlock()
 	t, ok := sm.btns[terminalName]
 	if !ok {
 		return fmt.Errorf("unknown terminal %s", terminalName)
@@ -79,11 +86,11 @@ func (sm *stackmatch) set(terminalName string) error {
 func NewStackPage(sd *esd.StreamDeck, parent esd.Page, h *hub.Hub) esd.Page {
 
 	sp := &stackPage{
-		sd:       sd,
-		parent:   parent,
-		rotators: make(map[int]*rot, 0),
-		labels:   make(map[int]*label.Label),
-		hub:      h,
+		sd:        sd,
+		ownParent: parent,
+		rotators:  make(map[int]*rot, 0),
+		labels:    make(map[int]*label.Label),
+		hub:       h,
 	}
 
 	labels := map[int]string{
@@ -123,7 +130,7 @@ func NewStackPage(sd *esd.StreamDeck, parent esd.Page, h *hub.Hub) esd.Page {
 		log.Fatalf("port SM doesn't exist")
 	}
 
-	sm := stackmatch{
+	sm := &stackmatch{
 		sm:   stack20m,
 		btns: make(map[string]*ledBtn.LedButton),
 	}
@@ -177,25 +184,30 @@ func NewStackPage(sd *esd.StreamDeck, parent esd.Page, h *hub.Hub) esd.Page {
 		for {
 			select {
 			case <-ticker.C:
+				sp.Lock()
 				for _, r := range sp.rotators {
 					r.label.SetText(fmt.Sprintf("%03d°", r.rotator.Azimuth()))
 				}
-
 				if sp.active {
 					sp.stack.update()
-					sp.Draw()
+					sp.draw()
 				}
+				sp.Unlock()
 			}
 		}
 	}()
 
-	sp.SetActive(true)
+	sp.Lock()
+	sp.setActive(true)
+	sp.Unlock()
 
 	return sp
 }
 
 func (sp *stackPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 
+	sp.Lock()
+	defer sp.Unlock()
 	if state == esd.BtnReleased {
 		return nil
 	}
@@ -216,7 +228,7 @@ func (sp *stackPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 	default: // rotator
 		rot, ok := sp.rotators[btnIndex]
 		if ok {
-			sp.SetActive(false)
+			sp.setActive(false)
 			return rotatorpage.NewRotatorPage(sp.sd, sp, rot.rotator)
 		}
 	}
@@ -224,13 +236,17 @@ func (sp *stackPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 	return nil
 }
 
-func (sp *stackPage) SetActive(active bool) {
-	sp.sd.ClearAllBtns()
-	sp.Draw()
+func (sp *stackPage) setActive(active bool) {
 	sp.active = active
 }
 
-func (sp *stackPage) Draw() {
+func (sp *stackPage) SetActive(active bool) {
+	sp.Lock()
+	defer sp.Unlock()
+	sp.setActive(active)
+}
+
+func (sp *stackPage) draw() {
 	for _, label := range sp.labels {
 		label.Draw()
 	}
@@ -244,6 +260,16 @@ func (sp *stackPage) Draw() {
 	}
 }
 
+func (sp *stackPage) Draw() {
+	sp.Lock()
+	defer sp.Unlock()
+	sp.draw()
+}
+
+func (sp *stackPage) parent() esd.Page {
+	return sp.ownParent
+}
+
 func (sp *stackPage) Parent() esd.Page {
-	return sp.parent
+	return sp.parent()
 }

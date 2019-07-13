@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/dh1tw/remoteRotator/rotator"
@@ -132,9 +133,12 @@ func main() {
 	defer sd.ClearAllBtns()
 
 	p := stackpage.NewStackPage(sd, nil, h)
+	var pMutex sync.Mutex
 	p.Draw()
 
 	cb := func(keyIndex int, state esd.BtnState) {
+		pMutex.Lock()
+		defer pMutex.Unlock()
 		newPage := p.Set(keyIndex, state)
 		if newPage != nil {
 			p = newPage
