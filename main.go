@@ -22,6 +22,8 @@ import (
 	natsReg "github.com/micro/go-plugins/registry/nats"
 	natsTr "github.com/micro/go-plugins/transport/nats"
 	nats "github.com/nats-io/nats.go"
+	// profiling
+	// _ "net/http/pprof"
 )
 
 const port int = 4222
@@ -33,6 +35,11 @@ func main() {
 	passwordFlag := flag.String("password", "", "nats password")
 
 	flag.Parse()
+
+	// Profiling (uncomment if needed)
+	// go func() {
+	// 	log.Println(http.ListenAndServe("0.0.0.0:6060", http.DefaultServeMux))
+	// }()
 
 	var reg registry.Registry
 	var tr transport.Transport
@@ -158,5 +165,5 @@ func main() {
 var bcast = make(chan rotator.Heading, 10)
 
 var ev = func(r rotator.Rotator, status rotator.Heading) {
-	bcast <- status
+	//not used for the moment
 }
