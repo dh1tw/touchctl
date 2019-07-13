@@ -10,11 +10,13 @@ environment:
     CC: gcc.exe
   matrix:
     - GOARCH: amd64
+      GOOS: windows
       MSYS2_ARCH: x86_64
       MSYS2_BITS: 64
       MSYSTEM: MINGW64
       PATH: C:\msys64\mingw64\bin\;%PATH%
     - GOARCH: 386
+      GOOS: windows
       MSYS2_ARCH: i686
       MSYS2_BITS: 32
       MSYSTEM: MINGW32
@@ -22,11 +24,23 @@ environment:
 
 install:
   - rmdir C:\go /s /q
-  - appveyor DownloadFile https://storage.googleapis.com/golang/go1.10.1.windows-%GOARCH%.zip
-  - 7z x go1.10.1.windows-%GOARCH%.zip -y -oC:\ > NUL
+  - appveyor DownloadFile https://storage.googleapis.com/golang/go1.10.8.windows-%GOARCH%.zip
+  - 7z x go1.10.8.windows-%GOARCH%.zip -y -oC:\ > NUL
   - go version
   - gcc --version
 
 build_script:
   - go get ./...
+  - go get github.com/gobuffalo/packr/v2/packr2
+  - set PATH=%PATH%;C:\gopath\bin
+  - cd C:\gopath\src\github.com\dh1tw\streamdeck
+  - packr2
+  - dir
+  - cd C:\gopath\src\github.com\dh1tw\touchctl
   - go build
+  - dir
+  - rename touchctl.exe touchctl-%APPVEYOR_REPO_COMMIT%-%GOOS%-%GOARCH%.exe
+
+artifacts:
+  - path: touchctl-%APPVEYOR_REPO_COMMIT%-%GOOS%-%GOARCH%.exe
+    name: touchctl
