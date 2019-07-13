@@ -225,7 +225,7 @@ func (sp *stackPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 }
 
 func (sp *stackPage) SetActive(active bool) {
-	// sp.sd.ClearAllBtns()
+	sp.sd.ClearAllBtns()
 	sp.Draw()
 	sp.active = active
 }
