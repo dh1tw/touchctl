@@ -46,8 +46,6 @@ func NewRotatorPage(sd *esd.StreamDeck, parent esd.Page, r rotator.Rotator) esd.
 		rotator: r,
 	}
 
-	sd.ClearAllBtns()
-
 	newPos, err := label.NewLabel(sd, 0,
 		label.BgColor(color.RGBA{0, 255, 0, 255}),
 		label.TextColor(color.RGBA{0, 0, 0, 255}))
@@ -140,5 +138,7 @@ func (sp *rotatorPage) Parent() esd.Page {
 }
 
 func (sp *rotatorPage) SetActive(active bool) {
+	sp.sd.ClearAllBtns()
+	sp.Draw()
 	sp.active = active
 }

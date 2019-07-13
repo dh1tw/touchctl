@@ -45,8 +45,6 @@ func NewPresetPage(sd *esd.StreamDeck, parent esd.Page, r rotator.Rotator) esd.P
 		},
 	}
 
-	sd.ClearAllBtns()
-
 	for pos, v := range pp.btnMapping {
 		l, err := label.NewLabel(sd, pos, label.Text(v.text))
 		if err != nil {
@@ -100,5 +98,7 @@ func (pp *presetPage) Parent() esd.Page {
 }
 
 func (pp *presetPage) SetActive(active bool) {
+	pp.sd.ClearAllBtns()
+	pp.Draw()
 	pp.active = active
 }
