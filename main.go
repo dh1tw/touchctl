@@ -23,11 +23,11 @@ import (
 	nats "github.com/nats-io/nats.go"
 )
 
-const url string = "ed1r.ddns.net"
 const port int = 4222
 
 func main() {
 
+	urlFlag := flag.String("address", "localhost", "address of nats broker")
 	usernameFlag := flag.String("username", "", "nats username")
 	passwordFlag := flag.String("password", "", "nats password")
 
@@ -40,6 +40,7 @@ func main() {
 
 	username := *usernameFlag
 	password := *passwordFlag
+	url := *urlFlag
 
 	if len(*usernameFlag) == 0 {
 		log.Fatal("missing nats username")
