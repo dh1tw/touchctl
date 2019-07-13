@@ -180,9 +180,9 @@ func NewStackPage(sd *esd.StreamDeck, parent esd.Page, h *hub.Hub) esd.Page {
 				for _, r := range sp.rotators {
 					r.label.SetText(fmt.Sprintf("%03d°", r.rotator.Azimuth()))
 				}
-				sp.stack.update()
 
 				if sp.active {
+					sp.stack.update()
 					sp.Draw()
 				}
 			}
