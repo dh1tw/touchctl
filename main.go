@@ -9,18 +9,17 @@ import (
 	"sync"
 	"time"
 
+	natsBroker "github.com/asim/go-micro/plugins/broker/nats/v3"
+	natsReg "github.com/asim/go-micro/plugins/registry/nats/v3"
+	natsTr "github.com/asim/go-micro/plugins/transport/nats/v3"
+	"github.com/asim/go-micro/v3/broker"
+	"github.com/asim/go-micro/v3/client"
+	"github.com/asim/go-micro/v3/registry"
+	"github.com/asim/go-micro/v3/transport"
 	"github.com/dh1tw/remoteRotator/rotator"
 	esd "github.com/dh1tw/streamdeck"
 	"github.com/dh1tw/touchctl/hub"
 	stackpage "github.com/dh1tw/touchctl/pages/stackmatch"
-	"github.com/micro/go-micro/broker"
-	"github.com/micro/go-micro/client"
-	"github.com/micro/go-micro/client/selector/static"
-	"github.com/micro/go-micro/registry"
-	"github.com/micro/go-micro/transport"
-	natsBroker "github.com/micro/go-plugins/broker/nats"
-	natsReg "github.com/micro/go-plugins/registry/nats"
-	natsTr "github.com/micro/go-plugins/transport/nats"
 	nats "github.com/nats-io/nats.go"
 	// profiling
 	// _ "net/http/pprof"
@@ -92,7 +91,7 @@ func main() {
 	br = natsBroker.NewBroker(natsBroker.Options(brNatsOpts))
 	cl = client.NewClient(
 		client.Broker(br),
-		client.Selector(static.NewSelector()),
+		// client.Selector(static.NewSelector()),
 		client.Transport(tr),
 		client.Registry(reg),
 		client.PoolSize(1),

@@ -8,7 +8,7 @@ import (
 
 	"github.com/dh1tw/remoteRotator/rotator"
 	esd "github.com/dh1tw/streamdeck"
-	"github.com/dh1tw/streamdeck/label"
+	"github.com/dh1tw/streamdeck-buttons/label"
 	presetpage "github.com/dh1tw/touchctl/pages/preset"
 )
 

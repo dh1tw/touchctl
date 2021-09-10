@@ -12,8 +12,8 @@ import (
 
 	"github.com/dh1tw/remoteRotator/rotator"
 	esd "github.com/dh1tw/streamdeck"
-	"github.com/dh1tw/streamdeck/label"
-	ledBtn "github.com/dh1tw/streamdeck/ledbutton"
+	"github.com/dh1tw/streamdeck-buttons/label"
+	ledBtn "github.com/dh1tw/streamdeck-buttons/ledbutton"
 	"github.com/dh1tw/touchctl/hub"
 	rotatorpage "github.com/dh1tw/touchctl/pages/rotator"
 )

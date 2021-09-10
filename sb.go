@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/asim/go-micro/v3/client"
 	sbRotatorProxy "github.com/dh1tw/remoteRotator/rotator/sb_proxy"
 	sbSwitchProxy "github.com/dh1tw/remoteSwitch/switch/sbSwitchProxy"
 	"github.com/dh1tw/touchctl/hub"
-	"github.com/micro/go-micro/client"
 )
 
 type serviceCache struct {
