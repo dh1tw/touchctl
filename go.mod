@@ -6,6 +6,7 @@ go 1.17
 // replace github.com/dh1tw/streamdeck-buttons => /Users/tobias/go/src/github.com/dh1tw/streamdeck-buttons
 // replace github.com/dh1tw/remoteSwitch => /Users/tobias/go/src/github.com/dh1tw/remoteSwitch
 // replace github.com/dh1tw/remoteRotator => /Users/tobias/go/src/github.com/dh1tw/remoteRotator
+// replace github.com/dh1tw/hid => /Users/tobias/go/src/github.com/dh1tw/hid
 
 require (
 	github.com/asim/go-micro/plugins/broker/nats/v3 v3.0.0-20210416163442-a91d1f7a3dbb
@@ -14,9 +15,8 @@ require (
 	github.com/asim/go-micro/v3 v3.5.2
 	github.com/dh1tw/remoteRotator v0.6.3-0.20210910212249-1d525322f67c
 	github.com/dh1tw/remoteSwitch v0.2.2-0.20210910212220-2ebfcf967620
-	github.com/dh1tw/streamdeck v0.1.2
-	github.com/dh1tw/streamdeck-buttons v0.1.2
-	// github.com/asim/go-plugins v3.0.0
+	github.com/dh1tw/streamdeck v0.1.4
+	github.com/dh1tw/streamdeck-buttons v0.1.4
 	github.com/nats-io/nats.go v1.12.1
 )
 
@@ -26,7 +26,7 @@ require (
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
-	github.com/dh1tw/hid v1.0.1-0.20190713013040-4404f3fb150e // indirect
+	github.com/dh1tw/hid v1.2.0 // indirect
 	github.com/disintegration/gift v1.2.1 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
