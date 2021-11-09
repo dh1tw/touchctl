@@ -91,7 +91,6 @@ func main() {
 	br = natsBroker.NewBroker(natsBroker.Options(brNatsOpts))
 	cl = client.NewClient(
 		client.Broker(br),
-		// client.Selector(static.NewSelector()),
 		client.Transport(tr),
 		client.Registry(reg),
 		client.PoolSize(1),

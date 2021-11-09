@@ -145,13 +145,13 @@ func NewStackPage(sd *esd.StreamDeck, parent esd.Page, h *hub.Hub) esd.Page {
 			}
 			b.SetState(t.State)
 			sm.btns["OB11-TWR1"] = b
-		case "4L-TWR2":
-			b, err := ledBtn.NewLedButton(sd, 12, ledBtn.Text(" 4L "))
+		case "OB11-TWR2":
+			b, err := ledBtn.NewLedButton(sd, 12, ledBtn.Text("OB11"))
 			if err != nil {
 				log.Fatal(err)
 			}
 			b.SetState(t.State)
-			sm.btns["4L-TWR2"] = b
+			sm.btns["OB11-TWR2"] = b
 		case "OB11-TWR3":
 			b, err := ledBtn.NewLedButton(sd, 11, ledBtn.Text("OB11"))
 			if err != nil {
@@ -180,7 +180,7 @@ func NewStackPage(sd *esd.StreamDeck, parent esd.Page, h *hub.Hub) esd.Page {
 	}
 
 	go func() {
-		ticker := time.NewTicker(time.Millisecond * 200)
+		ticker := time.NewTicker(time.Millisecond * 500)
 		for {
 			select {
 			case <-ticker.C:
@@ -218,7 +218,7 @@ func (sp *stackPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 			log.Println(err)
 		}
 	case 12:
-		if err := sp.stack.set("4L-TWR2"); err != nil {
+		if err := sp.stack.set("OB11-TWR2"); err != nil {
 			log.Println(err)
 		}
 	case 13:
