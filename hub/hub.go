@@ -141,3 +141,53 @@ func (hub *Hub) Switches() []Switch.Switcher {
 
 	return switches
 }
+
+type Event struct {
+	Name       SwitchEvent `json:"name,omitempty"`
+	DeviceName string      `json:"device_name,omitempty"`
+	Device     sw.Device   `json:"device,omitempty"` //only used for updates
+}
+
+type SwitchEvent string
+
+const (
+	AddSwitch    SwitchEvent = "add"
+	RemoveSwitch SwitchEvent = "remove"
+	UpdateSwitch SwitchEvent = "update"
+)
+
+// Broadcast sends a rotator Status struct to all connected clients
+func (hub *Hub) Broadcast(dev sw.Device) {
+
+	ev := Event{
+		Name:       UpdateSwitch,
+		DeviceName: dev.Name,
+		Device:     dev,
+	}
+	if err := hub.BroadcastToWsClients(ev); err != nil {
+		log.Println(err)
+	}
+}
+
+// BroadcastToWsClients will send a rotator.Status struct to all clients
+// connected through a Websocket
+func (hub *Hub) BroadcastToWsClients(event Event) error {
+	hub.Lock()
+	defer hub.Unlock()
+
+	return hub.broadcastToWsClients(event)
+}
+
+func (hub *Hub) broadcastToWsClients(event Event) error {
+
+	for c := range hub.wsClients {
+		if err := c.write(event); err != nil {
+			log.Printf("error writing to client %v: %v\n", c.RemoteAddr(), err)
+			log.Printf("disconnecting client %v\n", c.RemoteAddr())
+			c.Close()
+			delete(hub.wsClients, c)
+		}
+	}
+
+	return nil
+}

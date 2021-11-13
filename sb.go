@@ -28,20 +28,12 @@ type webserver struct {
 
 // isRotator checks a serviceName string if it is a shackbus rotator
 func isRotator(serviceName string) bool {
-
-	if !strings.Contains(serviceName, "shackbus.rotator.") {
-		return false
-	}
-	return true
+	return strings.Contains(serviceName, "shackbus.rotator.")
 }
 
 // isSwitch checks a serviceName string if it is a shackbus switch
 func isSwitch(serviceName string) bool {
-
-	if !strings.Contains(serviceName, "shackbus.switch.") {
-		return false
-	}
-	return true
+	return strings.Contains(serviceName, "shackbus.switch.")
 }
 
 // watchRegistry is a blocking function which continously
@@ -166,7 +158,7 @@ func (w *webserver) addRotator(rotatorServiceName string) error {
 
 	done := sbRotatorProxy.DoneCh(doneCh)
 	cli := sbRotatorProxy.Client(w.cli)
-	eh := sbRotatorProxy.EventHandler(ev)
+	eh := sbRotatorProxy.EventHandler(rotatorEvent)
 	name := sbRotatorProxy.Name(rotatorName)
 	serviceName := sbRotatorProxy.ServiceName(strings.Replace(rotatorServiceName, " ", "_", -1))
 
@@ -174,12 +166,12 @@ func (w *webserver) addRotator(rotatorServiceName string) error {
 	r, err := sbRotatorProxy.New(done, cli, eh, name, serviceName)
 	if err != nil {
 		close(doneCh)
-		return fmt.Errorf("unable to create proxy object: %v", err)
+		return fmt.Errorf("unable to create proxy object '%v': %v", rotatorName, err)
 	}
 
 	if err := w.AddRotator(r); err != nil {
 		close(doneCh)
-		return fmt.Errorf("unable to add proxy objects: %v", err)
+		return fmt.Errorf("unable to add proxy object '%v': %v", rotatorName, err)
 	}
 
 	go func() {
@@ -205,21 +197,21 @@ func (w *webserver) addSwitch(switchServiceName string) error {
 
 	done := sbSwitchProxy.DoneCh(doneCh)
 	cli := sbSwitchProxy.Client(w.cli)
-	// eh := sbSwitchProxy.EventHandler(ev)
+	eh := sbSwitchProxy.EventHandler(switchEvent)
 	name := sbSwitchProxy.Name(switchName)
 	serviceName := sbSwitchProxy.ServiceName(strings.Replace(switchServiceName, " ", "_", -1))
 
 	// create new switch proxy object
 	// s, err := sbSwitchProxy.New(done, cli, eh, name, serviceName)
-	s, err := sbSwitchProxy.New(done, cli, name, serviceName)
+	s, err := sbSwitchProxy.New(done, cli, eh, name, serviceName)
 	if err != nil {
 		close(doneCh)
-		return fmt.Errorf("unable to create proxy object: %v", err)
+		return fmt.Errorf("unable to create proxy object '%v': %v", switchName, err)
 	}
 
 	if err := w.AddSwitch(s); err != nil {
 		close(doneCh)
-		return fmt.Errorf("unable to add proxy objects: %v", err)
+		return fmt.Errorf("unable to add proxy object '%v': %v", switchName, err)
 	}
 
 	go func() {

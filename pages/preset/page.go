@@ -114,12 +114,8 @@ func (pp *presetPage) Parent() esd.Page {
 	return pp.parent()
 }
 
-func (pp *presetPage) setActive(active bool) {
-	pp.active = active
-}
-
 func (pp *presetPage) SetActive(active bool) {
 	pp.Lock()
 	defer pp.Unlock()
-	pp.setActive(active)
+	pp.active = active
 }

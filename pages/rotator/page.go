@@ -99,7 +99,6 @@ func (sp *rotatorPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 
 	switch btnIndex {
 	case 4:
-		sp.ownParent.SetActive(true)
 		return sp.parent()
 	case 5:
 		dir, err := strconv.Atoi(sp.newPosText)
@@ -108,7 +107,6 @@ func (sp *rotatorPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 			break
 		}
 		sp.rotator.SetAzimuth(dir)
-		sp.ownParent.SetActive(true)
 		return sp.parent()
 	case 9:
 		return presetpage.NewPresetPage(sp.sd, sp, sp.rotator)
@@ -154,12 +152,8 @@ func (sp *rotatorPage) Parent() esd.Page {
 	return sp.parent()
 }
 
-func (sp *rotatorPage) setActive(active bool) {
-	sp.active = active
-}
-
 func (sp *rotatorPage) SetActive(active bool) {
 	sp.Lock()
 	defer sp.Unlock()
-	sp.setActive(active)
+	sp.active = active
 }
