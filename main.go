@@ -186,6 +186,8 @@ func main() {
 	switchEvents["p20m"] = p20m.SwitchUpdateHandler
 	switchEvents["p40m"] = p40m.SwitchUpdateHandler
 
+	h.SubscribeToSbDeviceStatus("p10m", p10m.SbDeviceStatusHandler)
+
 	stacks := map[string]esd.Page{
 		"10m": p10m,
 		"15m": p15m,

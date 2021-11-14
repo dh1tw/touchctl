@@ -186,6 +186,10 @@ func NewStackPage(sd *esd.StreamDeck, parent esd.Page, h *hub.Hub, smConfig Stac
 	return sp
 }
 
+func (sp *StackPage) SbDeviceStatusHandler(event hub.SbDeviceStatusEvent) {
+	log.Println(event)
+}
+
 func (sp *StackPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 
 	sp.Lock()

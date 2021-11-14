@@ -13,15 +13,19 @@ import (
 // interfaces, supporting several protocols.
 type Hub struct {
 	sync.RWMutex
-	rotators map[string]rotator.Rotator //key: Rotator name
-	switches map[string]Switch.Switcher //key: Switch name
+	rotators                  map[string]rotator.Rotator //key: Rotator name
+	switches                  map[string]Switch.Switcher //key: Switch name
+	sbDeviceStatusSubscribers map[string]SbDeviceStatusCb
 }
+
+type SbDeviceStatusCb func(ev SbDeviceStatusEvent)
 
 // NewHub returns the pointer to an initialized Hub object.
 func NewHub(rotators ...rotator.Rotator) (*Hub, error) {
 	hub := &Hub{
-		rotators: make(map[string]rotator.Rotator),
-		switches: make(map[string]Switch.Switcher),
+		rotators:                  make(map[string]rotator.Rotator),
+		switches:                  make(map[string]Switch.Switcher),
+		sbDeviceStatusSubscribers: make(map[string]SbDeviceStatusCb),
 	}
 
 	for _, r := range rotators {
@@ -60,6 +64,15 @@ func (hub *Hub) addRotator(r rotator.Rotator) error {
 		return fmt.Errorf("rotator names must be unique; %s provided twice", r.Name())
 	}
 	hub.rotators[r.Name()] = r
+
+	ev := SbDeviceStatusEvent{
+		Event:      SbAddDevice,
+		DeviceName: r.Name(),
+	}
+	if err := hub.broadcastSbDeviceStatus(ev); err != nil {
+		log.Println(err)
+	}
+
 	log.Printf("added rotator (%s)\n", r.Name())
 
 	return nil
@@ -71,6 +84,15 @@ func (hub *Hub) addSwitch(s Switch.Switcher) error {
 		return fmt.Errorf("the switch's names must be unique; %s provided twice", s.Name())
 	}
 	hub.switches[s.Name()] = s
+
+	ev := SbDeviceStatusEvent{
+		Event:      SbAddDevice,
+		DeviceName: s.Name(),
+	}
+	if err := hub.broadcastSbDeviceStatus(ev); err != nil {
+		log.Println(err)
+	}
+
 	log.Printf("added switch (%s)\n", s.Name())
 
 	return nil
@@ -83,6 +105,14 @@ func (hub *Hub) RemoveRotator(r rotator.Rotator) {
 
 	r.Close()
 	delete(hub.rotators, r.Name())
+
+	ev := SbDeviceStatusEvent{
+		Event:      SbRemoveDevice,
+		DeviceName: r.Name(),
+	}
+	if err := hub.broadcastSbDeviceStatus(ev); err != nil {
+		log.Println(err)
+	}
 	log.Printf("removed rotator (%s)\n", r.Name())
 }
 
@@ -93,6 +123,15 @@ func (hub *Hub) RemoveSwitch(s Switch.Switcher) {
 
 	s.Close()
 	delete(hub.switches, s.Name())
+
+	ev := SbDeviceStatusEvent{
+		Event:      SbRemoveDevice,
+		DeviceName: s.Name(),
+	}
+	if err := hub.broadcastSbDeviceStatus(ev); err != nil {
+		log.Println(err)
+	}
+
 	log.Printf("removed switch (%s)\n", s.Name())
 }
 
@@ -142,51 +181,56 @@ func (hub *Hub) Switches() []Switch.Switcher {
 	return switches
 }
 
-type Event struct {
-	Name       SwitchEvent `json:"name,omitempty"`
-	DeviceName string      `json:"device_name,omitempty"`
-	Device     sw.Device   `json:"device,omitempty"` //only used for updates
+type SbDeviceStatusEvent struct {
+	Event      SbDeviceStatusEventType `json:"event,omitempty"`
+	DeviceName string                  `json:"device_name,omitempty"`
 }
 
-type SwitchEvent string
+type SbDeviceStatusEventType string
 
 const (
-	AddSwitch    SwitchEvent = "add"
-	RemoveSwitch SwitchEvent = "remove"
-	UpdateSwitch SwitchEvent = "update"
+	SbAddDevice    SbDeviceStatusEventType = "add"
+	SbRemoveDevice SbDeviceStatusEventType = "remove"
+	SbUpdateDevice SbDeviceStatusEventType = "update"
 )
 
-// Broadcast sends a rotator Status struct to all connected clients
-func (hub *Hub) Broadcast(dev sw.Device) {
-
-	ev := Event{
-		Name:       UpdateSwitch,
-		DeviceName: dev.Name,
-		Device:     dev,
-	}
-	if err := hub.BroadcastToWsClients(ev); err != nil {
-		log.Println(err)
-	}
-}
-
-// BroadcastToWsClients will send a rotator.Status struct to all clients
-// connected through a Websocket
-func (hub *Hub) BroadcastToWsClients(event Event) error {
+func (hub *Hub) SubscribeToSbDeviceStatus(subscriberName string, cb SbDeviceStatusCb) error {
 	hub.Lock()
 	defer hub.Unlock()
 
-	return hub.broadcastToWsClients(event)
+	if _, exists := hub.sbDeviceStatusSubscribers[subscriberName]; exists {
+		return fmt.Errorf("subscriber '%v' already exists", subscriberName)
+	}
+
+	hub.sbDeviceStatusSubscribers[subscriberName] = cb
+
+	return nil
 }
 
-func (hub *Hub) broadcastToWsClients(event Event) error {
+func (hub *Hub) UnsubscribeFromSbDeviceStatus(subscriberName string) {
+	hub.Lock()
+	defer hub.Unlock()
 
-	for c := range hub.wsClients {
-		if err := c.write(event); err != nil {
-			log.Printf("error writing to client %v: %v\n", c.RemoteAddr(), err)
-			log.Printf("disconnecting client %v\n", c.RemoteAddr())
-			c.Close()
-			delete(hub.wsClients, c)
+	delete(hub.sbDeviceStatusSubscribers, subscriberName)
+}
+
+func (hub *Hub) BroadcastSbDeviceStatus(event SbDeviceStatusEvent) error {
+	hub.Lock()
+	defer hub.Unlock()
+
+	return hub.broadcastSbDeviceStatus(event)
+}
+
+func (hub *Hub) broadcastSbDeviceStatus(event SbDeviceStatusEvent) error {
+
+	for sub, cb := range hub.sbDeviceStatusSubscribers {
+
+		if cb == nil {
+			delete(hub.sbDeviceStatusSubscribers, sub)
+			log.Printf("removed orphaned sbDeviceStatus Subscriber '%v'\n", sub)
 		}
+
+		go cb(event)
 	}
 
 	return nil
