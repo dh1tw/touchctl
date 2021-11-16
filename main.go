@@ -20,8 +20,7 @@ import (
 	sw "github.com/dh1tw/remoteSwitch/switch"
 	esd "github.com/dh1tw/streamdeck"
 	"github.com/dh1tw/touchctl/hub"
-	bandpage "github.com/dh1tw/touchctl/pages/band"
-	stackpage "github.com/dh1tw/touchctl/pages/stackmatch"
+	genpage "github.com/dh1tw/touchctl/pages/genPage"
 	nats "github.com/nats-io/nats.go"
 	// profiling
 	// _ "net/http/pprof"
@@ -118,14 +117,6 @@ func main() {
 
 	w := webserver{h, cl, cache}
 
-	// at startup, query the registry and add all found rotators and switches
-	if err := w.listAndAddServices(); err != nil {
-		log.Println(err)
-	}
-
-	// watch the registry in a seperate thread for changes
-	go w.watchRegistry()
-
 	// Channel to handle OS signals
 	osSignals := make(chan os.Signal, 1)
 
@@ -140,66 +131,92 @@ func main() {
 
 	defer sd.ClearAllBtns()
 
-	smConfig10m := stackpage.StackConfig{
-		Band: "10m",
-		Name: "Stackmatch 10m",
-		Ant1: stackpage.SmTerminal{Name: "OB11-TWR1", ShortName: "OB11", Index: 0},
-		Ant2: stackpage.SmTerminal{Name: "OB11-TWR2", ShortName: "OB11", Index: 1},
-		Ant3: stackpage.SmTerminal{Name: "OB11-TWR3", ShortName: "OB11", Index: 2},
+	// smConfig10m := stackpage.StackConfig{
+	// 	Band: "10m",
+	// 	Name: "Stackmatch 10m",
+	// 	Ant1: stackpage.SmTerminal{Name: "OB11-TWR1", ShortName: "OB11", Index: 0},
+	// 	Ant2: stackpage.SmTerminal{Name: "OB11-TWR2", ShortName: "OB11", Index: 1},
+	// 	Ant3: stackpage.SmTerminal{Name: "OB11-TWR3", ShortName: "OB11", Index: 2},
+	// }
+
+	// smConfig15m := stackpage.StackConfig{
+	// 	Band: "15m",
+	// 	Name: "Stackmatch 15m",
+	// 	Ant1: stackpage.SmTerminal{Name: "OB11-TWR1", ShortName: "OB11", Index: 0},
+	// 	Ant3: stackpage.SmTerminal{Name: "OB11-TWR3", ShortName: "OB11", Index: 2},
+	// 	Ant4: stackpage.SmTerminal{Name: "4L-TWR4", ShortName: " 4L ", Index: 3},
+	// }
+
+	// smConfig20m := stackpage.StackConfig{
+	// 	Band: "20m",
+	// 	Name: "Stackmatch 20m",
+	// 	Ant1: stackpage.SmTerminal{Name: "OB11-TWR1", ShortName: "OB11", Index: 0},
+	// 	Ant2: stackpage.SmTerminal{Name: "OB11-TWR2", ShortName: "OB11", Index: 1},
+	// 	Ant3: stackpage.SmTerminal{Name: "OB11-TWR3", ShortName: "OB11", Index: 2},
+	// }
+
+	// smConfig40m := stackpage.StackConfig{
+	// 	Band: "40m",
+	// 	Name: "Stackmatch 40m",
+	// 	Ant1: stackpage.SmTerminal{Name: "2L-TWR1", ShortName: " 2L ", Index: 0},
+	// 	Ant3: stackpage.SmTerminal{Name: "DIPOL-TWR3", ShortName: "DIPL", Index: 2},
+	// }
+
+	// p10m := stackpage.NewStackPage(sd, nil, h, smConfig10m)
+	// p15m := stackpage.NewStackPage(sd, nil, h, smConfig15m)
+	// p20m := stackpage.NewStackPage(sd, nil, h, smConfig20m)
+	// p40m := stackpage.NewStackPage(sd, nil, h, smConfig40m)
+
+	// rotatorEvents["p10m"] = p10m.RotatorUpdateHandler
+	// rotatorEvents["p15m"] = p15m.RotatorUpdateHandler
+	// rotatorEvents["p20m"] = p20m.RotatorUpdateHandler
+	// rotatorEvents["p40m"] = p40m.RotatorUpdateHandler
+
+	// switchEvents["p10m"] = p10m.SwitchUpdateHandler
+	// switchEvents["p15m"] = p15m.SwitchUpdateHandler
+	// switchEvents["p20m"] = p20m.SwitchUpdateHandler
+	// switchEvents["p40m"] = p40m.SwitchUpdateHandler
+
+	// h.SubscribeToSbDeviceStatus("p10m", p10m.SbDeviceStatusHandler)
+
+	// stacks := map[string]esd.Page{
+	// 	"10m": p10m,
+	// 	"15m": p15m,
+	// 	"20m": p20m,
+	// 	"40m": p40m,
+	// }
+
+	gpConfig := genpage.Config{
+		Layout: []genpage.Btn{
+			genpage.Btn{Type: genpage.Label, Text: "TWR4", Position: 0},
+			genpage.Btn{Type: genpage.Label, Text: "TWR3", Position: 1},
+			genpage.Btn{Type: genpage.Label, Text: "TWR2", Position: 2},
+			genpage.Btn{Type: genpage.Label, Text: "TWR1", Position: 3},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower4", Position: 5},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower3", Position: 6},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower2", Position: 7},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower1", Position: 8},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 20m", ItemName: "OB11-TWR3", Text: "OB11", Position: 11},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 20m", ItemName: "OB11-TWR2", Text: "OB11", Position: 12},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 20m", ItemName: "OB11-TWR1", Text: "OB11", Position: 13},
+		},
 	}
 
-	smConfig15m := stackpage.StackConfig{
-		Band: "15m",
-		Name: "Stackmatch 15m",
-		Ant1: stackpage.SmTerminal{Name: "OB11-TWR1", ShortName: "OB11", Index: 0},
-		Ant3: stackpage.SmTerminal{Name: "OB11-TWR3", ShortName: "OB11", Index: 2},
-		Ant4: stackpage.SmTerminal{Name: "4L-TWR4", ShortName: " 4L ", Index: 3},
+	gp, err := genpage.NewGenPage(sd, h, gpConfig)
+	if err != nil {
+		log.Panic(err)
 	}
 
-	smConfig20m := stackpage.StackConfig{
-		Band: "20m",
-		Name: "Stackmatch 20m",
-		Ant1: stackpage.SmTerminal{Name: "OB11-TWR1", ShortName: "OB11", Index: 0},
-		Ant2: stackpage.SmTerminal{Name: "OB11-TWR2", ShortName: "OB11", Index: 1},
-		Ant3: stackpage.SmTerminal{Name: "OB11-TWR3", ShortName: "OB11", Index: 2},
-	}
+	h.SubscribeToSbDeviceStatus("20m", gp.HandleSbDeviceUpdate)
 
-	smConfig40m := stackpage.StackConfig{
-		Band: "40m",
-		Name: "Stackmatch 40m",
-		Ant1: stackpage.SmTerminal{Name: "2L-TWR1", ShortName: " 2L ", Index: 0},
-		Ant3: stackpage.SmTerminal{Name: "DIPOL-TWR3", ShortName: "DIPL", Index: 2},
-	}
+	var currentPage esd.Page
+	currentPage = gp
 
-	p10m := stackpage.NewStackPage(sd, nil, h, smConfig10m)
-	p15m := stackpage.NewStackPage(sd, nil, h, smConfig15m)
-	p20m := stackpage.NewStackPage(sd, nil, h, smConfig20m)
-	p40m := stackpage.NewStackPage(sd, nil, h, smConfig40m)
-
-	rotatorEvents["p10m"] = p10m.RotatorUpdateHandler
-	rotatorEvents["p15m"] = p15m.RotatorUpdateHandler
-	rotatorEvents["p20m"] = p20m.RotatorUpdateHandler
-	rotatorEvents["p40m"] = p40m.RotatorUpdateHandler
-
-	switchEvents["p10m"] = p10m.SwitchUpdateHandler
-	switchEvents["p15m"] = p15m.SwitchUpdateHandler
-	switchEvents["p20m"] = p20m.SwitchUpdateHandler
-	switchEvents["p40m"] = p40m.SwitchUpdateHandler
-
-	h.SubscribeToSbDeviceStatus("p10m", p10m.SbDeviceStatusHandler)
-
-	stacks := map[string]esd.Page{
-		"10m": p10m,
-		"15m": p15m,
-		"20m": p20m,
-		"40m": p40m,
-	}
-
-	currentPage := bandpage.NewBandPage(sd, nil, stacks)
-	p10m.SetParent(currentPage)
-	p15m.SetParent(currentPage)
-	p20m.SetParent(currentPage)
-	p40m.SetParent(currentPage)
+	// currentPage := bandpage.NewBandPage(sd, nil, stacks)
+	// p10m.SetParent(currentPage)
+	// p15m.SetParent(currentPage)
+	// p20m.SetParent(currentPage)
+	// p40m.SetParent(currentPage)
 
 	var pMutex sync.Mutex
 	currentPage.SetActive(true)
@@ -219,6 +236,14 @@ func main() {
 	}
 
 	sd.SetBtnEventCb(cb)
+
+	// // at startup, query the registry and add all found rotators and switches
+	// if err := w.listAndAddServices(); err != nil {
+	// 	log.Println(err)
+	// }
+
+	// watch the registry in a seperate thread for changes
+	go w.watchRegistry()
 
 	select {
 	case <-osSignals:

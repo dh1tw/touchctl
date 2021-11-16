@@ -3,10 +3,11 @@ module github.com/dh1tw/touchctl
 go 1.17
 
 // replace github.com/dh1tw/streamdeck => /Users/tobias/go/src/github.com/dh1tw/streamdeck
-// replace github.com/dh1tw/streamdeck-buttons => /Users/tobias/go/src/github.com/dh1tw/streamdeck-buttons
+
 // replace github.com/dh1tw/remoteSwitch => /Users/tobias/go/src/github.com/dh1tw/remoteSwitch
 // replace github.com/dh1tw/remoteRotator => /Users/tobias/go/src/github.com/dh1tw/remoteRotator
 replace github.com/dh1tw/hid => /Users/tobias/go/src/github.com/dh1tw/hid
+replace github.com/dh1tw/streamdeck-buttons v0.2.0 => /Users/tobias/go/src/github.com/dh1tw/streamdeck-buttons
 
 require (
 	github.com/asim/go-micro/plugins/broker/nats/v3 v3.0.0-20210416163442-a91d1f7a3dbb

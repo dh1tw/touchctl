@@ -169,8 +169,6 @@ github.com/dh1tw/remoteSwitch v0.2.2-0.20210910212220-2ebfcf967620 h1:XPWXmyKU0r
 github.com/dh1tw/remoteSwitch v0.2.2-0.20210910212220-2ebfcf967620/go.mod h1:at3VzMrGVcafhxC4mGflUiNt0UVAfzNqXLnulxMAEHQ=
 github.com/dh1tw/streamdeck v0.1.4 h1:nn/j8leq/y3u8i3PnOEOkB9U8ZjiOY+GKJOfv7pV60I=
 github.com/dh1tw/streamdeck v0.1.4/go.mod h1:fkWbB8k9ThIxe41fy+ilgO8mw1P65ciwW6FuXPEXq7A=
-github.com/dh1tw/streamdeck-buttons v0.2.0 h1:wKrC0y8H0hWrZ1ur6KrVux2P0KH8tkD4gG9/JRznXkI=
-github.com/dh1tw/streamdeck-buttons v0.2.0/go.mod h1:26AzW/4qxWompFrL+g8nF8C+wY7A4lybz9/FBRQr5XY=
 github.com/dimchansky/utfbom v1.1.0/go.mod h1:rO41eb7gLfo8SF1jd9F8HplJm1Fewwi4mQvIirEdv+8=
 github.com/disintegration/gift v1.2.1 h1:Y005a1X4Z7Uc+0gLpSAsKhWi4qLtsdEcMIbbdvdZ6pc=
 github.com/disintegration/gift v1.2.1/go.mod h1:Jh2i7f7Q2BM7Ezno3PhfezbR1xpUg9dUg3/RlKGr4HI=
