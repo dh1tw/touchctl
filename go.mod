@@ -7,7 +7,8 @@ go 1.17
 // replace github.com/dh1tw/remoteSwitch => /Users/tobias/go/src/github.com/dh1tw/remoteSwitch
 // replace github.com/dh1tw/remoteRotator => /Users/tobias/go/src/github.com/dh1tw/remoteRotator
 replace github.com/dh1tw/hid => /Users/tobias/go/src/github.com/dh1tw/hid
-replace github.com/dh1tw/streamdeck-buttons v0.2.0 => /Users/tobias/go/src/github.com/dh1tw/streamdeck-buttons
+
+// replace github.com/dh1tw/streamdeck-buttons v0.2.0 => /Users/tobias/go/src/github.com/dh1tw/streamdeck-buttons
 
 require (
 	github.com/asim/go-micro/plugins/broker/nats/v3 v3.0.0-20210416163442-a91d1f7a3dbb
@@ -17,7 +18,7 @@ require (
 	github.com/dh1tw/remoteRotator v0.6.3-0.20210910212249-1d525322f67c
 	github.com/dh1tw/remoteSwitch v0.2.2-0.20210910212220-2ebfcf967620
 	github.com/dh1tw/streamdeck v0.1.4
-	github.com/dh1tw/streamdeck-buttons v0.2.0
+	github.com/dh1tw/streamdeck-buttons v0.2.1
 	github.com/nats-io/nats.go v1.12.1
 )
 

@@ -12,6 +12,7 @@ import (
 	"github.com/dh1tw/streamdeck-buttons/label"
 	ledBtn "github.com/dh1tw/streamdeck-buttons/ledbutton"
 	"github.com/dh1tw/touchctl/hub"
+	rotatorpage "github.com/dh1tw/touchctl/pages/rotator"
 )
 
 type GenPage struct {
@@ -143,12 +144,16 @@ func (gp *GenPage) checkDuplicateBtn(pos int) error {
 
 // HandleSbDeviceUpdate is called whenever the status of a Shackbus Device changes
 func (gp *GenPage) HandleSbDeviceUpdate(event hub.SbDeviceStatusEvent) {
+	gp.Lock()
+	defer gp.Unlock()
 
 	switch event.Event {
 	case hub.SbAddDevice:
 		gp.addSbDevice(event.DeviceName)
 	case hub.SbRemoveDevice:
 		gp.remoteSbDevice(event.DeviceName)
+	case hub.SbUpdateDevice:
+		gp.updateSbDevice(event.DeviceName)
 	}
 }
 
@@ -160,8 +165,11 @@ func (gp *GenPage) addSbDevice(newDeviceName string) {
 		newRotator, _ := gp.hub.Rotator(newDeviceName)
 		r.Rotator = newRotator
 		r.Label.SetTextColor(gp.btnColorAvailable)
-		r.Label.SetText(fmt.Sprintf("%03d°", r.Azimuth()))
-		r.Draw()
+		// r.Label.SetText(fmt.Sprintf("%03d°", r.Azimuth()))
+		r.Label.SetText(fmt.Sprintf("%3v°", r.Azimuth()))
+		if gp.active {
+			r.Draw()
+		}
 	}
 
 	for _, tBtn := range gp.terminalBtns {
@@ -182,7 +190,44 @@ func (gp *GenPage) addSbDevice(newDeviceName string) {
 			tBtn.SetState(t.State)
 			tBtn.SetTextColor(gp.btnColorAvailable)
 			tBtn.SetText(tBtn.TerminalText)
-			tBtn.Draw()
+			if gp.active {
+				tBtn.Draw()
+			}
+		}
+	}
+}
+
+func (gp *GenPage) updateSbDevice(newDeviceName string) {
+	for _, r := range gp.rotators {
+		if r.Name != newDeviceName {
+			continue
+		}
+		if r.Rotator == nil {
+			continue
+		}
+		// r.Label.SetText(fmt.Sprintf("%03d°", r.Azimuth()))
+		r.Label.SetText(fmt.Sprintf("%3v°", r.Azimuth()))
+		if gp.active {
+			r.Draw()
+		}
+	}
+
+	for _, tBtn := range gp.terminalBtns {
+		if tBtn.SwitchName != newDeviceName {
+			continue
+		}
+		if tBtn.Switcher == nil {
+			continue
+		}
+		port, _ := tBtn.Switcher.GetPort("SM")
+		for _, t := range port.Terminals {
+			if t.Name != tBtn.TerminalName {
+				continue
+			}
+			tBtn.SetState(t.State)
+			if gp.active {
+				tBtn.Draw()
+			}
 		}
 	}
 }
@@ -195,24 +240,60 @@ func (gp *GenPage) remoteSbDevice(remDeviceName string) {
 		r.Rotator = nil
 		r.Label.SetTextColor(gp.btnColorNotAvailable)
 		r.Label.SetText("N/A")
-		r.Draw()
+		if gp.active {
+			r.Draw()
+		}
 	}
 
 	for _, tBtn := range gp.terminalBtns {
 		if tBtn.SwitchName != remDeviceName {
 			continue
 		}
-		fmt.Printf("removing %v: %v\n", remDeviceName, tBtn.TerminalName)
-
 		tBtn.Switcher = nil
 		tBtn.SetState(false)
 		tBtn.SetText("N/A")
 		tBtn.SetTextColor(gp.btnColorNotAvailable)
-		tBtn.Draw()
+		if gp.active {
+			tBtn.Draw()
+		}
 	}
 }
 
 func (gp *GenPage) Set(btnIndex int, state esd.BtnState) esd.Page {
+	gp.Lock()
+	defer gp.Unlock()
+
+	if state == esd.BtnReleased {
+		return nil
+	}
+
+	r, exists := gp.rotators[btnIndex]
+	if exists {
+		if r.Rotator == nil {
+			return nil
+		}
+		return rotatorpage.NewRotatorPage(gp.sd, gp, r.Rotator)
+	}
+
+	s, exists := gp.terminalBtns[btnIndex]
+	if exists {
+		if s.Switcher == nil {
+			return nil
+		}
+		p := sw.Port{
+			Name: "SM",
+			Terminals: []sw.Terminal{
+				sw.Terminal{
+					Name:  s.TerminalName,
+					State: !s.State(),
+				},
+			},
+		}
+		if err := s.Switcher.SetPort(p); err != nil {
+			log.Println(err)
+		}
+	}
+
 	return nil
 }
 
@@ -247,5 +328,5 @@ func (gp *GenPage) Draw() {
 func (gp *GenPage) SetActive(active bool) {
 	gp.Lock()
 	defer gp.Unlock()
-	gp.active = true
+	gp.active = active
 }

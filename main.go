@@ -28,6 +28,8 @@ import (
 
 const port int = 4222
 
+var myHub *hub.Hub
+
 func main() {
 
 	urlFlag := flag.String("address", "localhost", "address of nats broker")
@@ -116,6 +118,8 @@ func main() {
 	}
 
 	w := webserver{h, cl, cache}
+
+	myHub = h
 
 	// Channel to handle OS signals
 	osSignals := make(chan os.Signal, 1)
@@ -251,19 +255,33 @@ func main() {
 	}
 }
 
-var rotatorEvents map[string]func(r rotator.Rotator, status rotator.Heading) = map[string]func(r rotator.Rotator, status rotator.Heading){}
-var switchEvents map[string]func(s sw.Switcher, device sw.Device) = map[string]func(s sw.Switcher, device sw.Device){}
+// var rotatorEvents map[string]func(r rotator.Rotator, status rotator.Heading) = map[string]func(r rotator.Rotator, status rotator.Heading){}
+// var switchEvents map[string]func(s sw.Switcher, device sw.Device) = map[string]func(s sw.Switcher, device sw.Device){}
 
 var rotatorEvent = func(r rotator.Rotator, status rotator.Heading) {
 	// fmt.Printf("rotor event: %v %v°\n", r.Name(), r.Azimuth())
-	for _, handler := range rotatorEvents {
-		go handler(r, status)
+	// for _, handler := range rotatorEvents {
+	// 	go handler(r, status)
+	// }
+
+	ev := hub.SbDeviceStatusEvent{
+		Event:      hub.SbUpdateDevice,
+		DeviceName: r.Name(),
 	}
+	myHub.BroadcastSbDeviceStatus(ev)
+
 }
 
 var switchEvent = func(s sw.Switcher, device sw.Device) {
 	// fmt.Println("switch event: ", device)
-	for _, handler := range switchEvents {
-		go handler(s, device)
+	// for _, handler := range switchEvents {
+	// 	go handler(s, device)
+	// }
+
+	ev := hub.SbDeviceStatusEvent{
+		Event:      hub.SbUpdateDevice,
+		DeviceName: s.Name(),
 	}
+	myHub.BroadcastSbDeviceStatus(ev)
+
 }
