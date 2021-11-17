@@ -135,63 +135,63 @@ func main() {
 
 	defer sd.ClearAllBtns()
 
-	// smConfig10m := stackpage.StackConfig{
-	// 	Band: "10m",
-	// 	Name: "Stackmatch 10m",
-	// 	Ant1: stackpage.SmTerminal{Name: "OB11-TWR1", ShortName: "OB11", Index: 0},
-	// 	Ant2: stackpage.SmTerminal{Name: "OB11-TWR2", ShortName: "OB11", Index: 1},
-	// 	Ant3: stackpage.SmTerminal{Name: "OB11-TWR3", ShortName: "OB11", Index: 2},
-	// }
+	var bandSwAPage esd.Page
+	var bandSwBPage esd.Page
+	var stackSelectorPage esd.Page
+	var stack10mPage esd.Page
+	var stack15mPage esd.Page
+	var stack20mPage esd.Page
+	var stack40mPage esd.Page
+	var stack80mPage esd.Page
+	var stack160mPage esd.Page
 
-	// smConfig15m := stackpage.StackConfig{
-	// 	Band: "15m",
-	// 	Name: "Stackmatch 15m",
-	// 	Ant1: stackpage.SmTerminal{Name: "OB11-TWR1", ShortName: "OB11", Index: 0},
-	// 	Ant3: stackpage.SmTerminal{Name: "OB11-TWR3", ShortName: "OB11", Index: 2},
-	// 	Ant4: stackpage.SmTerminal{Name: "4L-TWR4", ShortName: " 4L ", Index: 3},
-	// }
-
-	// smConfig20m := stackpage.StackConfig{
-	// 	Band: "20m",
-	// 	Name: "Stackmatch 20m",
-	// 	Ant1: stackpage.SmTerminal{Name: "OB11-TWR1", ShortName: "OB11", Index: 0},
-	// 	Ant2: stackpage.SmTerminal{Name: "OB11-TWR2", ShortName: "OB11", Index: 1},
-	// 	Ant3: stackpage.SmTerminal{Name: "OB11-TWR3", ShortName: "OB11", Index: 2},
-	// }
-
-	// smConfig40m := stackpage.StackConfig{
-	// 	Band: "40m",
-	// 	Name: "Stackmatch 40m",
-	// 	Ant1: stackpage.SmTerminal{Name: "2L-TWR1", ShortName: " 2L ", Index: 0},
-	// 	Ant3: stackpage.SmTerminal{Name: "DIPOL-TWR3", ShortName: "DIPL", Index: 2},
-	// }
-
-	// p10m := stackpage.NewStackPage(sd, nil, h, smConfig10m)
-	// p15m := stackpage.NewStackPage(sd, nil, h, smConfig15m)
-	// p20m := stackpage.NewStackPage(sd, nil, h, smConfig20m)
-	// p40m := stackpage.NewStackPage(sd, nil, h, smConfig40m)
-
-	// rotatorEvents["p10m"] = p10m.RotatorUpdateHandler
-	// rotatorEvents["p15m"] = p15m.RotatorUpdateHandler
-	// rotatorEvents["p20m"] = p20m.RotatorUpdateHandler
-	// rotatorEvents["p40m"] = p40m.RotatorUpdateHandler
-
-	// switchEvents["p10m"] = p10m.SwitchUpdateHandler
-	// switchEvents["p15m"] = p15m.SwitchUpdateHandler
-	// switchEvents["p20m"] = p20m.SwitchUpdateHandler
-	// switchEvents["p40m"] = p40m.SwitchUpdateHandler
-
-	// h.SubscribeToSbDeviceStatus("p10m", p10m.SbDeviceStatusHandler)
-
-	// stacks := map[string]esd.Page{
-	// 	"10m": p10m,
-	// 	"15m": p15m,
-	// 	"20m": p20m,
-	// 	"40m": p40m,
-	// }
-
-	gpConfig := genpage.Config{
+	bandSwAConfig := genpage.Config{
 		Layout: []genpage.Btn{
+			genpage.Btn{Type: genpage.Label, Text: "STCK", Position: 4, NextPage: &stackSelectorPage},
+			genpage.Btn{Type: genpage.Label, Text: "A", Position: 9, NextPage: &bandSwBPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "A", TerminalName: "160m", Text: "160m", Position: 8, NextPage: &stack160mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "A", TerminalName: "80m", Text: "80m", Position: 7, NextPage: &stack80mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "A", TerminalName: "40m", Text: "40m", Position: 6, NextPage: &stack40mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "A", TerminalName: "20m", Text: "20m", Position: 5, NextPage: &stack20mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "A", TerminalName: "15m", Text: "15m", Position: 13, NextPage: &stack15mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "A", TerminalName: "10m", Text: "10m", Position: 12, NextPage: &stack10mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "A", TerminalName: "6m", Text: "6m", Position: 11},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "A", TerminalName: "WARC", Text: "WARC", Position: 10},
+		},
+	}
+
+	bandSwBConfig := genpage.Config{
+		Layout: []genpage.Btn{
+			genpage.Btn{Type: genpage.Label, Text: "STCK", Position: 4, NextPage: &stackSelectorPage},
+			genpage.Btn{Type: genpage.Label, Text: "B", Position: 9, NextPage: &bandSwAPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "B", TerminalName: "160m", Text: "160m", Position: 8, NextPage: &stack160mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "B", TerminalName: "80m", Text: "80m", Position: 7, NextPage: &stack80mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "B", TerminalName: "40m", Text: "40m", Position: 6, NextPage: &stack40mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "B", TerminalName: "20m", Text: "20m", Position: 5, NextPage: &stack20mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "B", TerminalName: "15m", Text: "15m", Position: 13, NextPage: &stack15mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "B", TerminalName: "10m", Text: "10m", Position: 12, NextPage: &stack10mPage},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "B", TerminalName: "6m", Text: "6m", Position: 11},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Bandswitch", PortName: "B", TerminalName: "WARC", Text: "WARC", Position: 10},
+		},
+	}
+
+	stackSelectorConfig := genpage.Config{
+		Layout: []genpage.Btn{
+			genpage.Btn{Type: genpage.Label, Text: "BAND", NextPage: &bandSwAPage, Position: 4},
+			genpage.Btn{Type: genpage.Label, Text: "160m", NextPage: &stack160mPage, Position: 8},
+			genpage.Btn{Type: genpage.Label, Text: "80m", NextPage: &stack80mPage, Position: 7},
+			genpage.Btn{Type: genpage.Label, Text: "40m", NextPage: &stack40mPage, Position: 6},
+			genpage.Btn{Type: genpage.Label, Text: "20m", NextPage: &stack20mPage, Position: 5},
+			genpage.Btn{Type: genpage.Label, Text: "15m", NextPage: &stack15mPage, Position: 13},
+			genpage.Btn{Type: genpage.Label, Text: "10m", NextPage: &stack10mPage, Position: 12},
+			genpage.Btn{Type: genpage.Label, Text: "N/A", Position: 11},
+			genpage.Btn{Type: genpage.Label, Text: "N/A", Position: 10},
+		},
+	}
+
+	sm10mConfig := genpage.Config{
+		Layout: []genpage.Btn{
+			genpage.Btn{Type: genpage.Label, Text: "BAND", NextPage: &bandSwAPage, Position: 4},
 			genpage.Btn{Type: genpage.Label, Text: "TWR4", Position: 0},
 			genpage.Btn{Type: genpage.Label, Text: "TWR3", Position: 1},
 			genpage.Btn{Type: genpage.Label, Text: "TWR2", Position: 2},
@@ -200,27 +200,156 @@ func main() {
 			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower3", Position: 6},
 			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower2", Position: 7},
 			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower1", Position: 8},
-			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 20m", ItemName: "OB11-TWR3", Text: "OB11", Position: 11},
-			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 20m", ItemName: "OB11-TWR2", Text: "OB11", Position: 12},
-			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 20m", ItemName: "OB11-TWR1", Text: "OB11", Position: 13},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 10m", PortName: "SM", TerminalName: "OB11-TWR3", Text: "OB11", Position: 11},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 10m", PortName: "SM", TerminalName: "OB11-TWR1", Text: "OB11", Position: 13},
 		},
 	}
 
-	gp, err := genpage.NewGenPage(sd, h, gpConfig)
+	sm15mConfig := genpage.Config{
+		Layout: []genpage.Btn{
+			genpage.Btn{Type: genpage.Label, Text: "BAND", NextPage: &bandSwAPage, Position: 4},
+			genpage.Btn{Type: genpage.Label, Text: "TWR4", Position: 0},
+			genpage.Btn{Type: genpage.Label, Text: "TWR3", Position: 1},
+			genpage.Btn{Type: genpage.Label, Text: "TWR2", Position: 2},
+			genpage.Btn{Type: genpage.Label, Text: "TWR1", Position: 3},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower4", Position: 5},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower3", Position: 6},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower2", Position: 7},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower1", Position: 8},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 15m", PortName: "SM", TerminalName: "4L-TWR4", Text: "4L", Position: 10},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 15m", PortName: "SM", TerminalName: "OB11-TWR3", Text: "OB11", Position: 11},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 15m", PortName: "SM", TerminalName: "OB11-TWR1", Text: "OB11", Position: 13},
+		},
+	}
+
+	sm20mConfig := genpage.Config{
+		Layout: []genpage.Btn{
+			genpage.Btn{Type: genpage.Label, Text: "BAND", NextPage: &bandSwAPage, Position: 4},
+			genpage.Btn{Type: genpage.Label, Text: "TWR4", Position: 0},
+			genpage.Btn{Type: genpage.Label, Text: "TWR3", Position: 1},
+			genpage.Btn{Type: genpage.Label, Text: "TWR2", Position: 2},
+			genpage.Btn{Type: genpage.Label, Text: "TWR1", Position: 3},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower4", Position: 5},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower3", Position: 6},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower2", Position: 7},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower1", Position: 8},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 20m", PortName: "SM", TerminalName: "OB11-TWR3", Text: "OB11", Position: 11},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 20m", PortName: "SM", TerminalName: "OB11-TWR2", Text: "OB11", Position: 12},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 20m", PortName: "SM", TerminalName: "OB11-TWR1", Text: "OB11", Position: 13},
+		},
+	}
+
+	sm40mConfig := genpage.Config{
+		Layout: []genpage.Btn{
+			genpage.Btn{Type: genpage.Label, Text: "BAND", NextPage: &bandSwAPage, Position: 4},
+			genpage.Btn{Type: genpage.Label, Text: "TWR4", Position: 0},
+			genpage.Btn{Type: genpage.Label, Text: "TWR3", Position: 1},
+			genpage.Btn{Type: genpage.Label, Text: "TWR2", Position: 2},
+			genpage.Btn{Type: genpage.Label, Text: "TWR1", Position: 3},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower4", Position: 5},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower3", Position: 6},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower2", Position: 7},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower1", Position: 8},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 40m", PortName: "SM", TerminalName: "DIPOL-TWR3", Text: "DIPL", Position: 11},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 40m", PortName: "SM", TerminalName: "2L-TWR1", Text: "2L", Position: 13},
+		},
+	}
+	sm80mConfig := genpage.Config{
+		Layout: []genpage.Btn{
+			genpage.Btn{Type: genpage.Label, Text: "BAND", NextPage: &bandSwAPage, Position: 4},
+			genpage.Btn{Type: genpage.Label, Text: "TWR4", Position: 0},
+			genpage.Btn{Type: genpage.Label, Text: "TWR3", Position: 1},
+			genpage.Btn{Type: genpage.Label, Text: "TWR2", Position: 2},
+			genpage.Btn{Type: genpage.Label, Text: "TWR1", Position: 3},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower4", Position: 5},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower3", Position: 6},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower2", Position: 7},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower1", Position: 8},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 80m", PortName: "SM", TerminalName: "VERTICAL", Text: "VERT", Position: 11},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 80m", PortName: "SM", TerminalName: "DIPOL", Text: "DIPL", Position: 13},
+		},
+	}
+	sm160mConfig := genpage.Config{
+		Layout: []genpage.Btn{
+			genpage.Btn{Type: genpage.Label, Text: "BAND", NextPage: &bandSwAPage, Position: 4},
+			genpage.Btn{Type: genpage.Label, Text: "TWR4", Position: 0},
+			genpage.Btn{Type: genpage.Label, Text: "TWR3", Position: 1},
+			genpage.Btn{Type: genpage.Label, Text: "TWR2", Position: 2},
+			genpage.Btn{Type: genpage.Label, Text: "TWR1", Position: 3},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower4", Position: 5},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower3", Position: 6},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower2", Position: 7},
+			genpage.Btn{Type: genpage.Rotator, DeviceName: "Tower1", Position: 8},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 160m", PortName: "SM", TerminalName: "VERTICAL", Text: "VERT", Position: 11},
+			genpage.Btn{Type: genpage.Terminal, DeviceName: "Stackmatch 160m", PortName: "SM", TerminalName: "DIPOL", Text: "DIPL", Position: 13},
+		},
+	}
+
+	bandSwA, err := genpage.NewGenPage(sd, h, bandSwAConfig)
 	if err != nil {
 		log.Panic(err)
 	}
+	bandSwAPage = bandSwA
 
-	h.SubscribeToSbDeviceStatus("20m", gp.HandleSbDeviceUpdate)
+	bandSwB, err := genpage.NewGenPage(sd, h, bandSwBConfig)
+	if err != nil {
+		log.Panic(err)
+	}
+	bandSwBPage = bandSwB
+
+	stackSelector, err := genpage.NewGenPage(sd, h, stackSelectorConfig)
+	if err != nil {
+		log.Panic(err)
+	}
+	stackSelectorPage = stackSelector
+
+	stack10m, err := genpage.NewGenPage(sd, h, sm10mConfig)
+	if err != nil {
+		log.Panic(err)
+	}
+	stack10mPage = stack10m
+
+	stack15m, err := genpage.NewGenPage(sd, h, sm15mConfig)
+	if err != nil {
+		log.Panic(err)
+	}
+	stack15mPage = stack15m
+
+	stack20m, err := genpage.NewGenPage(sd, h, sm20mConfig)
+	if err != nil {
+		log.Panic(err)
+	}
+	stack20mPage = stack20m
+
+	stack40m, err := genpage.NewGenPage(sd, h, sm40mConfig)
+	if err != nil {
+		log.Panic(err)
+	}
+	stack40mPage = stack40m
+
+	stack80m, err := genpage.NewGenPage(sd, h, sm80mConfig)
+	if err != nil {
+		log.Panic(err)
+	}
+	stack80mPage = stack80m
+
+	stack160m, err := genpage.NewGenPage(sd, h, sm160mConfig)
+	if err != nil {
+		log.Panic(err)
+	}
+	stack160mPage = stack160m
+
+	h.SubscribeToSbDeviceStatus("BandSwitchA", bandSwA.HandleSbDeviceUpdate)
+	h.SubscribeToSbDeviceStatus("BandSwitchB", bandSwB.HandleSbDeviceUpdate)
+	h.SubscribeToSbDeviceStatus("Stackmatch10m", stack10m.HandleSbDeviceUpdate)
+	h.SubscribeToSbDeviceStatus("Stackmatch15m", stack15m.HandleSbDeviceUpdate)
+	h.SubscribeToSbDeviceStatus("Stackmatch20m", stack20m.HandleSbDeviceUpdate)
+	h.SubscribeToSbDeviceStatus("Stackmatch40m", stack40m.HandleSbDeviceUpdate)
+	h.SubscribeToSbDeviceStatus("Stackmatch80m", stack80m.HandleSbDeviceUpdate)
+	h.SubscribeToSbDeviceStatus("Stackmatch160m", stack160m.HandleSbDeviceUpdate)
 
 	var currentPage esd.Page
-	currentPage = gp
-
-	// currentPage := bandpage.NewBandPage(sd, nil, stacks)
-	// p10m.SetParent(currentPage)
-	// p15m.SetParent(currentPage)
-	// p20m.SetParent(currentPage)
-	// p40m.SetParent(currentPage)
+	currentPage = bandSwAPage
 
 	var pMutex sync.Mutex
 	currentPage.SetActive(true)
@@ -241,7 +370,7 @@ func main() {
 
 	sd.SetBtnEventCb(cb)
 
-	// // at startup, query the registry and add all found rotators and switches
+	// at startup, query the registry and add all found rotators and switches
 	// if err := w.listAndAddServices(); err != nil {
 	// 	log.Println(err)
 	// }
@@ -249,39 +378,21 @@ func main() {
 	// watch the registry in a seperate thread for changes
 	go w.watchRegistry()
 
-	select {
-	case <-osSignals:
-		return
-	}
+	<-osSignals
 }
 
-// var rotatorEvents map[string]func(r rotator.Rotator, status rotator.Heading) = map[string]func(r rotator.Rotator, status rotator.Heading){}
-// var switchEvents map[string]func(s sw.Switcher, device sw.Device) = map[string]func(s sw.Switcher, device sw.Device){}
-
 var rotatorEvent = func(r rotator.Rotator, status rotator.Heading) {
-	// fmt.Printf("rotor event: %v %v°\n", r.Name(), r.Azimuth())
-	// for _, handler := range rotatorEvents {
-	// 	go handler(r, status)
-	// }
-
 	ev := hub.SbDeviceStatusEvent{
 		Event:      hub.SbUpdateDevice,
 		DeviceName: r.Name(),
 	}
 	myHub.BroadcastSbDeviceStatus(ev)
-
 }
 
 var switchEvent = func(s sw.Switcher, device sw.Device) {
-	// fmt.Println("switch event: ", device)
-	// for _, handler := range switchEvents {
-	// 	go handler(s, device)
-	// }
-
 	ev := hub.SbDeviceStatusEvent{
 		Event:      hub.SbUpdateDevice,
 		DeviceName: s.Name(),
 	}
 	myHub.BroadcastSbDeviceStatus(ev)
-
 }

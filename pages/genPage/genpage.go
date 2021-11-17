@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/dh1tw/remoteRotator/rotator"
 	sw "github.com/dh1tw/remoteSwitch/switch"
@@ -26,10 +27,14 @@ type GenPage struct {
 	terminalBtns         map[int]*TerminalBtn
 	btnColorAvailable    color.Color
 	btnColorNotAvailable color.Color
+	pressed              bool
+	lastPress            time.Time
+	cancelBtnPress       chan struct{}
 }
 
 type StaticLabelBtn struct {
 	*label.Label
+	nextPage *esd.Page
 }
 
 type RotatorBtn struct {
@@ -40,8 +45,10 @@ type RotatorBtn struct {
 
 type TerminalBtn struct {
 	SwitchName   string
+	PortName     string
 	TerminalName string
 	TerminalText string
+	nextPage     *esd.Page
 	*ledBtn.LedButton
 	sw.Switcher
 }
@@ -61,11 +68,13 @@ const (
 )
 
 type Btn struct {
-	Type       BtnType
-	DeviceName string
-	ItemName   string
-	Text       string
-	Position   int
+	Type         BtnType
+	DeviceName   string
+	PortName     string
+	TerminalName string
+	Text         string
+	Position     int
+	NextPage     *esd.Page
 }
 
 func NewGenPage(sd *esd.StreamDeck, h *hub.Hub, config Config) (*GenPage, error) {
@@ -78,6 +87,7 @@ func NewGenPage(sd *esd.StreamDeck, h *hub.Hub, config Config) (*GenPage, error)
 		terminalBtns:         make(map[int]*TerminalBtn),
 		btnColorAvailable:    color.RGBA{255, 255, 255, 255}, //white
 		btnColorNotAvailable: color.RGBA{80, 80, 80, 255},    //grey
+		lastPress:            time.Now(),
 	}
 
 	// setup the layout
@@ -94,7 +104,8 @@ func NewGenPage(sd *esd.StreamDeck, h *hub.Hub, config Config) (*GenPage, error)
 				return nil, err
 			}
 			g.staticLabels[btn.Position] = &StaticLabelBtn{
-				Label: x}
+				Label:    x,
+				nextPage: btn.NextPage}
 		case Rotator:
 			x, err := label.NewLabel(sd, btn.Position, label.Text("N/A"), label.TextColor(g.btnColorNotAvailable))
 			if err != nil {
@@ -110,10 +121,12 @@ func NewGenPage(sd *esd.StreamDeck, h *hub.Hub, config Config) (*GenPage, error)
 				return nil, err
 			}
 			g.terminalBtns[btn.Position] = &TerminalBtn{
-				TerminalName: btn.ItemName,
-				TerminalText: btn.Text,
 				SwitchName:   btn.DeviceName,
+				PortName:     btn.PortName,
+				TerminalName: btn.TerminalName,
+				TerminalText: btn.Text,
 				LedButton:    x,
+				nextPage:     btn.NextPage,
 			}
 		}
 	}
@@ -178,9 +191,9 @@ func (gp *GenPage) addSbDevice(newDeviceName string) {
 		}
 		newStack, _ := gp.hub.Switch(newDeviceName)
 		tBtn.Switcher = newStack
-		port, err := tBtn.Switcher.GetPort("SM")
+		port, err := tBtn.Switcher.GetPort(tBtn.PortName)
 		if err != nil {
-			log.Printf("unable to add stackmatch %v: port 'SM' not present", newDeviceName)
+			log.Printf("unable to add switch device %v: port '%v' not present", newDeviceName, tBtn.PortName)
 			continue
 		}
 		for _, t := range port.Terminals {
@@ -219,7 +232,7 @@ func (gp *GenPage) updateSbDevice(newDeviceName string) {
 		if tBtn.Switcher == nil {
 			continue
 		}
-		port, _ := tBtn.Switcher.GetPort("SM")
+		port, _ := tBtn.Switcher.GetPort(tBtn.PortName)
 		for _, t := range port.Terminals {
 			if t.Name != tBtn.TerminalName {
 				continue
@@ -263,8 +276,44 @@ func (gp *GenPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 	gp.Lock()
 	defer gp.Unlock()
 
-	if state == esd.BtnReleased {
+	longPress := false
+
+	switch state {
+	case esd.BtnPressed:
+		gp.pressed = true
+		gp.lastPress = time.Now()
+		// gp.cancelBtnPress = make(chan struct{})
+
+		// go func() {
+		// 	countdown := time.NewTimer(time.Second)
+		// 	select {
+		// 	case <-countdown.C:
+		// 		// fake button release after 1 sec
+		// 		gp.Set(btnIndex, esd.BtnReleased)
+		// 	case <-gp.cancelBtnPress:
+		// 		// cancel countdown
+		// 		countdown.Stop()
+		// 	}
+		// }()
+
 		return nil
+	case esd.BtnReleased:
+
+		// if !gp.pressed {
+		// 	return nil
+		// }
+
+		if gp.pressed && time.Since(gp.lastPress) > time.Second {
+			longPress = true
+		} else {
+			// gp.cancelBtnPress <- struct{}{}
+			// close(gp.cancelBtnPress)
+		}
+		gp.pressed = false
+	}
+
+	if longPress {
+		log.Println("longpress!")
 	}
 
 	r, exists := gp.rotators[btnIndex]
@@ -280,17 +329,41 @@ func (gp *GenPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 		if s.Switcher == nil {
 			return nil
 		}
+
 		p := sw.Port{
-			Name: "SM",
+			Name: s.PortName,
 			Terminals: []sw.Terminal{
-				sw.Terminal{
+				{
 					Name:  s.TerminalName,
 					State: !s.State(),
 				},
 			},
 		}
-		if err := s.Switcher.SetPort(p); err != nil {
-			log.Println(err)
+
+		if !longPress {
+			if err := s.Switcher.SetPort(p); err != nil {
+				log.Println(err)
+				return nil
+			}
+		}
+
+		// do not deactivate on longpress
+		if longPress && !s.State() {
+			if err := s.Switcher.SetPort(p); err != nil {
+				log.Println(err)
+				return nil
+			}
+		}
+
+		if longPress && s.nextPage != nil {
+			return *s.nextPage
+		}
+	}
+
+	l, exists := gp.staticLabels[btnIndex]
+	if exists {
+		if l.nextPage != nil {
+			return *l.nextPage
 		}
 	}
 
