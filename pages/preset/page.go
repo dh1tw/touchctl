@@ -68,7 +68,7 @@ func (pp *presetPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 	pp.Lock()
 	defer pp.Unlock()
 
-	if state == esd.BtnReleased {
+	if state == esd.BtnPressed {
 		return nil
 	}
 

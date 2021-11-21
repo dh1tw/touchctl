@@ -93,7 +93,7 @@ func (sp *rotatorPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 	sp.Lock()
 	defer sp.Unlock()
 
-	if state == esd.BtnReleased {
+	if state == esd.BtnPressed {
 		return nil
 	}
 
@@ -103,7 +103,13 @@ func (sp *rotatorPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 	case 5:
 		dir, err := strconv.Atoi(sp.newPosText)
 		if err != nil {
-			log.Println(err)
+			// log.Println(err)
+			break
+		}
+		if dir < 0 || dir > 450 {
+			sp.newPosText = ""
+			sp.newPos.SetText(sp.newPosText)
+			sp.newPos.Draw()
 			break
 		}
 		sp.rotator.SetAzimuth(dir)

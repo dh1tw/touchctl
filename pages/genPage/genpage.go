@@ -5,7 +5,6 @@ import (
 	"image/color"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/dh1tw/remoteRotator/rotator"
 	sw "github.com/dh1tw/remoteSwitch/switch"
@@ -27,9 +26,7 @@ type GenPage struct {
 	terminalBtns         map[int]*TerminalBtn
 	btnColorAvailable    color.Color
 	btnColorNotAvailable color.Color
-	pressed              bool
-	lastPress            time.Time
-	cancelBtnPress       chan struct{}
+	lastBtnState         esd.BtnState
 }
 
 type StaticLabelBtn struct {
@@ -87,7 +84,7 @@ func NewGenPage(sd *esd.StreamDeck, h *hub.Hub, config Config) (*GenPage, error)
 		terminalBtns:         make(map[int]*TerminalBtn),
 		btnColorAvailable:    color.RGBA{255, 255, 255, 255}, //white
 		btnColorNotAvailable: color.RGBA{80, 80, 80, 255},    //grey
-		lastPress:            time.Now(),
+		lastBtnState:         esd.BtnReleased,
 	}
 
 	// setup the layout
@@ -278,42 +275,21 @@ func (gp *GenPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 
 	longPress := false
 
+	defer func() {
+		gp.lastBtnState = state
+	}()
+
 	switch state {
 	case esd.BtnPressed:
-		gp.pressed = true
-		gp.lastPress = time.Now()
-		// gp.cancelBtnPress = make(chan struct{})
-
-		// go func() {
-		// 	countdown := time.NewTimer(time.Second)
-		// 	select {
-		// 	case <-countdown.C:
-		// 		// fake button release after 1 sec
-		// 		gp.Set(btnIndex, esd.BtnReleased)
-		// 	case <-gp.cancelBtnPress:
-		// 		// cancel countdown
-		// 		countdown.Stop()
-		// 	}
-		// }()
-
 		return nil
+
+	case esd.BtnLongPressed:
+		longPress = true
+
 	case esd.BtnReleased:
-
-		// if !gp.pressed {
-		// 	return nil
-		// }
-
-		if gp.pressed && time.Since(gp.lastPress) > time.Second {
-			longPress = true
-		} else {
-			// gp.cancelBtnPress <- struct{}{}
-			// close(gp.cancelBtnPress)
+		if gp.lastBtnState != esd.BtnPressed && gp.lastBtnState != esd.BtnLongPressed {
+			return nil
 		}
-		gp.pressed = false
-	}
-
-	if longPress {
-		log.Println("longpress!")
 	}
 
 	r, exists := gp.rotators[btnIndex]
@@ -347,15 +323,36 @@ func (gp *GenPage) Set(btnIndex int, state esd.BtnState) esd.Page {
 			}
 		}
 
-		// do not deactivate on longpress
-		if longPress && !s.State() {
+		// On a longpress, all stackmatch ports will be
+		// disabled execpt of the selected one
+		if longPress && s.PortName == "SM" {
+			myPort, err := s.GetPort("SM")
+			if err != nil {
+				log.Println(err)
+			}
+			for i, t := range myPort.Terminals {
+				if t.Name == s.TerminalName {
+					myPort.Terminals[i].State = true
+				} else {
+					myPort.Terminals[i].State = false
+				}
+			}
+			if err := s.Switcher.SetPort(myPort); err != nil {
+				log.Println(err)
+				return nil
+			}
+		}
+
+		// Bandswitch: on a longpress, ensure the band is active
+		// before jumping to the stackmatch page
+		if longPress && s.PortName != "SM" && !s.State() {
 			if err := s.Switcher.SetPort(p); err != nil {
 				log.Println(err)
 				return nil
 			}
 		}
 
-		if longPress && s.nextPage != nil {
+		if longPress && s.PortName != "SM" && s.nextPage != nil {
 			return *s.nextPage
 		}
 	}
