@@ -266,6 +266,7 @@ func main() {
 			{Type: genpage.Rotator, DeviceName: "Tower2", Position: 7},
 			{Type: genpage.Rotator, DeviceName: "Tower1", Position: 8},
 			{Type: genpage.Terminal, DeviceName: "Stackmatch 80m", PortName: "SM", TerminalName: "VERTICAL", Text: "VERT", Position: 11},
+			{Type: genpage.Terminal, DeviceName: "Stackmatch 80m", PortName: "SM", TerminalName: "SLOPER", Text: "SLPR", Position: 12},
 			{Type: genpage.Terminal, DeviceName: "Stackmatch 80m", PortName: "SM", TerminalName: "DIPOL", Text: "DIPL", Position: 13},
 		},
 	}
