@@ -201,6 +201,7 @@ func main() {
 			{Type: genpage.Rotator, DeviceName: "Tower2", Position: 7},
 			{Type: genpage.Rotator, DeviceName: "Tower1", Position: 8},
 			{Type: genpage.Terminal, DeviceName: "Stackmatch 10m", PortName: "SM", TerminalName: "OB11-TWR3", Text: "OB11", Position: 11},
+			{Type: genpage.Terminal, DeviceName: "Stackmatch 10m", PortName: "SM", TerminalName: "OB11-TWR2", Text: "OB11", Position: 12},
 			{Type: genpage.Terminal, DeviceName: "Stackmatch 10m", PortName: "SM", TerminalName: "OB11-TWR1", Text: "OB11", Position: 13},
 		},
 	}
@@ -216,8 +217,8 @@ func main() {
 			{Type: genpage.Rotator, DeviceName: "Tower3", Position: 6},
 			{Type: genpage.Rotator, DeviceName: "Tower2", Position: 7},
 			{Type: genpage.Rotator, DeviceName: "Tower1", Position: 8},
-			{Type: genpage.Terminal, DeviceName: "Stackmatch 15m", PortName: "SM", TerminalName: "4L-TWR4", Text: "4L", Position: 10},
 			{Type: genpage.Terminal, DeviceName: "Stackmatch 15m", PortName: "SM", TerminalName: "OB11-TWR3", Text: "OB11", Position: 11},
+			{Type: genpage.Terminal, DeviceName: "Stackmatch 15m", PortName: "SM", TerminalName: "OB11-TWR2", Text: "OB11", Position: 12},
 			{Type: genpage.Terminal, DeviceName: "Stackmatch 15m", PortName: "SM", TerminalName: "OB11-TWR1", Text: "OB11", Position: 13},
 		},
 	}
